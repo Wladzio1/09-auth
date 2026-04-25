@@ -1,28 +1,18 @@
+import { getMe } from "@/lib/api/serverApi";
 import Image from "next/image";
 import Link from "next/link";
-import { cookies } from "next/headers";
-import { getMe } from "@/lib/api/serverApi";
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Profile",
-  description: "User profile page",
-};
 
 export default async function ProfilePage() {
-  const cookieStore = cookies();
-  const user = await getMe(cookieStore.toString());
+  const user = (await getMe()).data;
 
   return (
-    <main>
-      <h1>Profile Page</h1>
-
+    <div>
       <Image src={user.avatar} alt="avatar" width={120} height={120} />
 
-      <p>{user.username}</p>
+      <h1>{user.username}</h1>
       <p>{user.email}</p>
 
-      <Link href="/profile/edit">Edit Profile</Link>
-    </main>
+      <Link href="/profile/edit">Edit</Link>
+    </div>
   );
 }

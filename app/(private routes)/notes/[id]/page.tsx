@@ -1,58 +1,20 @@
-import {
-  dehydrate,
-  HydrationBoundary,
-  QueryClient,
-} from "@tanstack/react-query";
-import { fetchNoteById } from "@/lib/api/clientApi";
-import NoteDetailsClient from "./NoteDetails.client";
-import { Metadata } from "next";
+import { fetchNoteById } from "@/lib/api/serverApi";
 
-export default async function Page({
-  params,
-}: {
+type Props = {
   params: Promise<{ id: string }>;
-}) {
-  const { id } = await params; // ✅ FIX
+};
 
-  const queryClient = new QueryClient();
+export default async function NotePage({ params }: Props) {
+  const { id } = await params;
 
-  await queryClient.prefetchQuery({
-    queryKey: ["note", id],
-    queryFn: () => fetchNoteById(id),
-  });
+  const res = await fetchNoteById(id);
+
+  const note = res.data;
 
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <NoteDetailsClient />
-    </HydrationBoundary>
+    <main>
+      <h1>{note.title}</h1>
+      <p>{note.content}</p>
+    </main>
   );
-}
-
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}): Promise<Metadata> {
-  const { id } = await params;
-  const note = await fetchNoteById(id);
-
-  // Створюємо змінні, щоб не дублювати slice
-  const title = note.title;
-  const description = note.content.slice(0, 160);
-
-  return {
-    title,
-    description,
-    openGraph: {
-      title,
-      description,
-      url: `https://twoja-strona.com/notes/${id}`,
-      images: [
-        {
-          // 2. Використовуй лінк із завдання
-          url: "https://goit.global",
-        },
-      ],
-    },
-  };
 }
