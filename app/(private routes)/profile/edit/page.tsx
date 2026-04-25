@@ -1,43 +1,49 @@
 "use client";
 
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { useAuthStore } from "@/lib/store/authStore";
 import { updateMe } from "@/lib/api/clientApi";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { useState } from "react";
 
-export default function EditProfilePage() {
+export default function ProfileEditPage() {
   const router = useRouter();
   const { user, setUser } = useAuthStore();
 
-  const [username, setUsername] = useState(user?.username || "");
+  const [username, setUsername] = useState(user?.username ?? "");
 
-  async function onSubmit(e: React.FormEvent) {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const res = await updateMe({ username });
+    const updated = await updateMe({ username });
 
-    setUser(res);
+    setUser(updated);
     router.push("/profile");
-  }
+  };
 
   return (
-    <main>
-      <h1>Edit Profile</h1>
+    <form onSubmit={onSubmit}>
+      <Image
+        src={user?.avatar ?? ""}
+        alt="avatar"
+        width={100}
+        height={100}
+      />
 
-      <Image src={user?.avatar || ""} alt="avatar" width={120} height={120} />
+      <input
+        type="text"
+        name="username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+      />
 
-      <form onSubmit={onSubmit}>
-        <input value={username} onChange={(e) => setUsername(e.target.value)} />
+      <input type="email" value={user?.email ?? ""} readOnly />
 
-        <p>{user?.email}</p>
+      <button type="submit">Save</button>
 
-        <button type="submit">Save</button>
-
-        <button type="button" onClick={() => router.push("/profile")}>
-          Cancel
-        </button>
-      </form>
-    </main>
+      <button type="button" onClick={() => router.back()}>
+        Cancel
+      </button>
+    </form>
   );
 }

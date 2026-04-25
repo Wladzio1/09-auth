@@ -1,55 +1,53 @@
-import { api } from "@/app/api/api";
-import { cookies } from "next/headers";
+import { api } from "./api";
 import type { Note } from "@/types/note";
 import type { User } from "@/types/user";
+import { cookies } from "next/headers";
 
-const getCookieHeader = async () => {
-  const cookieStore = await cookies();
-  return cookieStore.toString();
+type NotesResponse = {
+  data: Note[];
+  total: number;
 };
 
-export const fetchNotes = async (params: {
-  search?: string;
-  page?: number;
-  perPage?: number;
-  tag?: string;
-}) => {
-  const cookieHeader = await getCookieHeader();
+function getCookieHeader() {
+  const cookieStore = cookies();
+  return cookieStore.toString();
+}
 
-  return api.get<{ data: Note[] }>("/notes", {
+export async function fetchNotes(params?: Record<string, string | number>) {
+  const res = await api.get<NotesResponse>("/notes", {
     params,
     headers: {
-      Cookie: cookieHeader,
+      Cookie: getCookieHeader(),
     },
   });
-};
 
-export const fetchNoteById = async (id: string) => {
-  const cookieHeader = await getCookieHeader();
+  return res.data;
+}
 
-  return api.get<Note>(`/notes/${id}`, {
+export async function fetchNoteById(id: string): Promise<Note> {
+  const res = await api.get<Note>(`/notes/${id}`, {
     headers: {
-      Cookie: cookieHeader,
+      Cookie: getCookieHeader(),
     },
   });
-};
 
-export const getMe = async () => {
-  const cookieHeader = await getCookieHeader();
+  return res.data;
+}
 
-  return api.get<User>("/users/me", {
+export async function getMe(): Promise<User> {
+  const res = await api.get<User>("/users/me", {
     headers: {
-      Cookie: cookieHeader,
+      Cookie: getCookieHeader(),
     },
   });
-};
 
-export const checkSession = async () => {
-  const cookieHeader = await getCookieHeader();
+  return res.data;
+}
 
-  return api.get("/auth/session", {
+export async function checkSession() {
+  return await api.get("/auth/session", {
     headers: {
-      Cookie: cookieHeader,
+      Cookie: getCookieHeader(),
     },
   });
-};
+}

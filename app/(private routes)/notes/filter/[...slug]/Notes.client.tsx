@@ -3,53 +3,40 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchNotes } from "@/lib/api/clientApi";
 import { useState } from "react";
-import { useDebounce } from "use-debounce";
-import Link from "next/link";
-import type { Note } from "@/types/note";
 
-type Props = {
-  tag?: string;
+import type { Note } from "@/types/note";
+import Pagination from "@/components/Pagination/Pagination";
+
+type NotesResponse = {
+  data: Note[];
+  total: number;
 };
 
-export default function NotesClient({ tag }: Props) {
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
+export default function NotesClient() {
+  const [page, setPage] = useState<number>(1);
 
-  const [debounced] = useDebounce(search, 500);
-
-  const { data } = useQuery({
-    queryKey: ["notes", debounced, page, tag],
-    queryFn: async () => {
-      const res = await fetchNotes({
-        search: debounced,
-        page,
-        perPage: 12,
-        tag,
-      });
-
-      return res.data;
-    },
+  const { data } = useQuery<NotesResponse>({
+    queryKey: ["notes", page],
+    queryFn: () => fetchNotes({ page }),
   });
 
-  const notes: Note[] = data?.data ?? [];
+  const notes = data?.data ?? [];
 
   return (
     <div>
-      <Link href="/notes/action/create">Create note</Link>
+      {notes.map((note: Note) => (
+        <div key={note.id}>
+          <h3>{note.title}</h3>
+        </div>
+      ))}
 
-      <input
-        value={search}
-        onChange={(e) => {
-          setSearch(e.target.value);
-          setPage(1);
-        }}
-      />
-
-      <ul>
-        {notes.map((n) => (
-          <li key={n.id}>{n.title}</li>
-        ))}
-      </ul>
+      {data && (
+        <Pagination
+          currentPage={page}
+          pageCount={Math.ceil(data.total / 10)}
+          onPageChange={setPage}
+        />
+      )}
     </div>
   );
 }

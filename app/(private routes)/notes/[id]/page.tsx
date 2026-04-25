@@ -1,20 +1,18 @@
 import { fetchNoteById } from "@/lib/api/serverApi";
 
-type Props = {
+export default async function Page({
+  params,
+}: {
   params: Promise<{ id: string }>;
-};
-
-export default async function NotePage({ params }: Props) {
+}) {
   const { id } = await params;
 
-  const res = await fetchNoteById(id);
-
-  const note = res.data;
+  const note = await fetchNoteById(id);
 
   return (
-    <main>
+    <div>
       <h1>{note.title}</h1>
       <p>{note.content}</p>
-    </main>
+    </div>
   );
 }

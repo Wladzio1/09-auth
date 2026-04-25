@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkSession } from "@/lib/api/serverApi";
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const accessToken = request.cookies.get("accessToken")?.value;
@@ -9,31 +9,32 @@ export async function proxy(request: NextRequest) {
 
   const isAuthPage =
     pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up");
-
-  const isPrivatePage =
+  const isPrivate =
     pathname.startsWith("/profile") || pathname.startsWith("/notes");
+
+  let response = NextResponse.next();
 
   if (!accessToken && refreshToken) {
     try {
       const res = await checkSession();
 
-      const newAccessToken = res.headers["set-cookie"];
+      const setCookie = res.headers["set-cookie"];
 
-      const response = NextResponse.next();
+      if (setCookie) {
+        const cookiesArr = Array.isArray(setCookie) ? setCookie : [setCookie];
 
-      if (newAccessToken) {
-        response.headers.set("set-cookie", newAccessToken as any);
+        cookiesArr.forEach((cookie) => {
+          response.headers.append("set-cookie", cookie);
+        });
       }
-
-      return response;
-    } catch (e) {
-      if (isPrivatePage) {
+    } catch {
+      if (isPrivate) {
         return NextResponse.redirect(new URL("/sign-in", request.url));
       }
     }
   }
 
-  if (!accessToken && isPrivatePage) {
+  if (!accessToken && isPrivate) {
     return NextResponse.redirect(new URL("/sign-in", request.url));
   }
 
@@ -41,5 +42,5 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  return NextResponse.next();
+  return response;
 }
