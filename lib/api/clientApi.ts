@@ -15,7 +15,7 @@ export async function fetchNotes(params?: {
     },
   });
 
-  return res.data; // ❗ CAŁY OBIEKT (not just Note[])
+  return res.data;
 }
 
 export async function fetchNoteById(id: string) {
