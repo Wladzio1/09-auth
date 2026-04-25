@@ -2,59 +2,68 @@ import { api } from "./api";
 import { User } from "@/types/user";
 import { Note } from "@/types/note";
 
-// NOTES
-
-export const fetchNotes = async (params: {
-  page: number;
-  perPage: number;
-  search: string;
+export async function fetchNotes(params?: {
+  search?: string;
+  page?: number;
+  perPage?: number;
   tag?: string;
-}) => {
-  const res = await api.get<Note[]>("/notes", { params });
-  return res.data;
-};
+}) {
+  const res = await api.get("/notes", {
+    params: {
+      perPage: 12,
+      ...params,
+    },
+  });
 
-export const fetchNoteById = async (id: string) => {
-  const res = await api.get<Note>(`/notes/${id}`);
-  return res.data;
-};
+  return res.data; // ❗ CAŁY OBIEKT (not just Note[])
+}
 
-export const createNote = async (data: {
+export async function fetchNoteById(id: string) {
+  const res = await api.get(`/notes/${id}`);
+  return res.data;
+}
+
+export async function createNote(data: {
   title: string;
   content: string;
   tag: string;
-}) => {
-  const res = await api.post<Note>("/notes", data);
+}) {
+  const res = await api.post("/notes", data);
   return res.data;
-};
+}
 
-export const deleteNote = async (id: string) => {
+export async function deleteNote(id: string) {
   const res = await api.delete(`/notes/${id}`);
   return res.data;
-};
+}
 
 // AUTH
-
-export const register = async (data: { email: string; password: string }) => {
-  const res = await api.post<User>("/auth/register", data);
+export async function register(data: { email: string; password: string }) {
+  const res = await api.post("/auth/register", data);
   return res.data;
-};
+}
 
-export const login = async (data: { email: string; password: string }) => {
-  const res = await api.post<User>("/auth/login", data);
+export async function login(data: { email: string; password: string }) {
+  const res = await api.post("/auth/login", data);
   return res.data;
-};
+}
 
-export const logout = async () => {
-  await api.post("/auth/logout");
-};
-
-export const getMe = async () => {
-  const res = await api.get<User>("/users/me");
+export async function logout() {
+  const res = await api.post("/auth/logout");
   return res.data;
-};
+}
 
-export const updateMe = async (data: { username: string }) => {
-  const res = await api.patch<User>("/users/me", data);
+export async function checkSession() {
+  const res = await api.get("/auth/session");
   return res.data;
-};
+}
+
+export async function getMe() {
+  const res = await api.get("/users/me");
+  return res.data;
+}
+
+export async function updateMe(data: Partial<User>) {
+  const res = await api.patch("/users/me", data);
+  return res.data;
+}

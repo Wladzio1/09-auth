@@ -1,49 +1,43 @@
 import { api } from "./api";
 
-function getCookieHeader(cookies?: string) {
+function cookieHeader(cookies?: string) {
   return cookies ? { Cookie: cookies } : {};
 }
 
-export async function fetchNotes(
-  params?: {
-    search?: string;
-    page?: number;
-    perPage?: number;
-    tag?: string;
-  },
-  cookies?: string,
-) {
-  const { data } = await api.get("/notes", {
+// NOTES
+export async function fetchNotes(params?: any, cookies?: string) {
+  const res = await api.get("/notes", {
     params: {
       perPage: 12,
       ...params,
     },
-    headers: getCookieHeader(cookies),
+    headers: cookieHeader(cookies),
   });
 
-  return data;
+  return res;
 }
 
 export async function fetchNoteById(id: string, cookies?: string) {
-  const { data } = await api.get(`/notes/${id}`, {
-    headers: getCookieHeader(cookies),
+  const res = await api.get(`/notes/${id}`, {
+    headers: cookieHeader(cookies),
   });
 
-  return data;
+  return res;
 }
 
+// USER
 export async function getMe(cookies?: string) {
-  const { data } = await api.get("/users/me", {
-    headers: getCookieHeader(cookies),
+  const res = await api.get("/users/me", {
+    headers: cookieHeader(cookies),
   });
 
-  return data;
+  return res;
 }
 
 export async function checkSession(cookies?: string) {
-  const { data } = await api.get("/auth/session", {
-    headers: getCookieHeader(cookies),
+  const res = await api.get("/auth/session", {
+    headers: cookieHeader(cookies),
   });
 
-  return data;
+  return res;
 }
