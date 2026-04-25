@@ -1,24 +1,24 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { getMe } from "@/lib/api/serverApi";
+import { useAuthStore } from "@/lib/store/authStore";
 
-export const metadata = {
-  title: "Profile",
-  description: "User profile",
-};
-
-export default async function ProfilePage() {
-  const res = await getMe();
-  const user = res.data;
+export default function ProfilePage() {
+  const user = useAuthStore((state) => state.user);
 
   return (
     <main>
-      <h1>Profile</h1>
+      <h1>Profile Page</h1>
 
-      <Image src={user.avatar} alt="avatar" width={120} height={120} />
+      {user && (
+        <>
+          <Image src={user.avatar} alt="avatar" width={120} height={120} />
 
-      <p>{user.username}</p>
-      <p>{user.email}</p>
+          <p>Username: {user.username}</p>
+          <p>Email: {user.email}</p>
+        </>
+      )}
 
       <Link href="/profile/edit">Edit Profile</Link>
     </main>
