@@ -1,43 +1,40 @@
 import { api } from "./api";
+import type { Note } from "@/types/note";
+import type { User } from "@/types/user";
+import type { AxiosResponse } from "axios";
 
-function cookieHeader(cookies?: string) {
-  return cookies ? { Cookie: cookies } : {};
+const cookieHeader = (cookies: string) => ({
+  headers: { Cookie: cookies },
+});
+
+// NOTES LIST
+export async function fetchNotes(params: {
+  search?: string;
+  page?: number;
+  perPage?: number;
+  tag?: string;
+}): Promise<AxiosResponse<{ data: Note[] }>> {
+  return api.get("/notes", { params });
 }
 
-// NOTES
-export async function fetchNotes(params?: any, cookies?: string) {
-  const res = await api.get("/notes", {
-    params: {
-      perPage: 12,
-      ...params,
-    },
-    headers: cookieHeader(cookies),
-  });
-
-  return res;
-}
-
-export async function fetchNoteById(id: string, cookies?: string) {
-  const res = await api.get(`/notes/${id}`, {
-    headers: cookieHeader(cookies),
-  });
-
-  return res;
+// NOTE BY ID
+export async function fetchNoteById(
+  id: string,
+  cookies: string,
+): Promise<Note> {
+  const res = await api.get(`/notes/${id}`, cookieHeader(cookies));
+  return res.data;
 }
 
 // USER
-export async function getMe(cookies?: string) {
-  const res = await api.get("/users/me", {
-    headers: cookieHeader(cookies),
-  });
-
-  return res;
+export async function getMe(cookies: string): Promise<User> {
+  const res = await api.get("/users/me", cookieHeader(cookies));
+  return res.data;
 }
 
-export async function checkSession(cookies?: string) {
-  const res = await api.get("/auth/session", {
-    headers: cookieHeader(cookies),
-  });
-
-  return res;
+// SESSION
+export async function checkSession(
+  cookies: string,
+): Promise<AxiosResponse<User>> {
+  return api.get("/auth/session", cookieHeader(cookies));
 }

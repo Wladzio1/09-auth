@@ -1,63 +1,66 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
+import { fetchNotes } from "@/lib/api/serverApi";
 import { useState } from "react";
 import { useDebounce } from "use-debounce";
-import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
-
-import { fetchNotes } from "@/lib/api/clientApi";
-
-import NoteList from "@/components/NoteList/NoteList";
-import SearchBox from "@/components/SearchBox/SearchBox";
 import Pagination from "@/components/Pagination/Pagination";
+import type { Note } from "@/types/note";
 
 type Props = {
   tag?: string;
 };
 
+type NotesResponse = {
+  data: Note[];
+};
+
 export default function NotesClient({ tag }: Props) {
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [search, setSearch] = useState<string>("");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+
   const [debouncedSearch] = useDebounce(search, 500);
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["notes", debouncedSearch, currentPage, tag],
-    queryFn: () =>
-      fetchNotes({
-        page: currentPage,
-        perPage: 12,
+  const { data } = useQuery<NotesResponse>({
+    queryKey: ["notes", debouncedSearch, page, tag],
+    queryFn: async () => {
+      const res = await fetchNotes({
         search: debouncedSearch,
+        page,
+        perPage: 12,
         tag,
-      }),
+      });
+
+      return res.data;
+    },
   });
 
-  const notes = data ?? [];
-
-  const handleSearchChange = (value: string): void => {
-    setSearch(value);
-    setCurrentPage(1);
-  };
-
-  const handlePageChange = (page: number): void => {
-    setCurrentPage(page);
-  };
-
-  if (isLoading) return <p>Loading...</p>;
-  if (isError) return <p>Error loading notes</p>;
+  const notes: Note[] = data?.data ?? [];
 
   return (
     <div>
-      <Link href="/notes/action/create">Create note +</Link>
-
-      <SearchBox onChange={handleSearchChange} />
-
-      {notes.length > 0 ? <NoteList notes={notes} /> : <p>No notes found</p>}
-
-      <Pagination
-        pageCount={notes.length === 12 ? currentPage + 1 : currentPage}
-        currentPage={currentPage}
-        onPageChange={handlePageChange}
+      <input
+        value={search}
+        onChange={(e) => {
+          setSearch(e.target.value);
+          setPage(1);
+        }}
+        placeholder="Search..."
       />
+
+      <ul>
+        {notes.map((note) => (
+          <li key={note.id}>{note.title}</li>
+        ))}
+      </ul>
+
+      {notes.length > 0 && (
+        <Pagination
+          pageCount={10}
+          currentPage={page}
+          onPageChange={(p: number) => setPage(p)}
+        />
+      )}
     </div>
   );
 }
