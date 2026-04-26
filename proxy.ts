@@ -13,7 +13,7 @@ export async function proxy(request: NextRequest) {
   const isPrivateRoute =
     pathname.startsWith("/profile") || pathname.startsWith("/notes");
 
-  let response = NextResponse.next();
+  const response = NextResponse.next();
 
   // refresh session
   if (!accessToken && refreshToken) {
